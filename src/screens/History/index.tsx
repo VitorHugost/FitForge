@@ -1,8 +1,8 @@
 import { HeaderScreen } from "@components/HeaderScreen";
 import { HistoryCard } from "@components/HistoryCard";
-import { Heading, VStack } from "native-base";
+import { Center, Heading, SectionList, Text, VStack, View } from "native-base";
 import { useState } from "react";
-import { SectionList } from "react-native";
+// import { SectionList } from "react-native";
 
 export function History(){
     const [exercise, setExercise] = useState([
@@ -17,22 +17,28 @@ export function History(){
 
 ])
     return(
-        <VStack flex={1}>
+        <VStack flex={1} >
             <HeaderScreen  title="Histórico de Exercícios"/>
 
-            <SectionList 
+            <SectionList
             sections={exercise}
             keyExtractor={item => item}
             renderItem={({item})=>(
-                <HistoryCard />
+                <HistoryCard  />
             )}
             renderSectionHeader={({section})=>(
-                <Heading color="gray.200" fontSize="md" mt={10} mb={3}>
+                <Heading flex={1} color="gray.200" fontSize="md" mt={10} mb={3} fontFamily='heading'>
                     {section.title}
                 </Heading>
             )}
+            px={4}
+            contentContainerStyle={exercise.length ===0 && {flex:1, justifyContent:"center"}}
+            ListEmptyComponent={()=>(
+
+                <Text color="gray.100" textAlign="center" >Não há exercicios registrados ainda.</Text>
+            )}
+            showsVerticalScrollIndicator={false}
             />
         </VStack>
     )
-    
 }

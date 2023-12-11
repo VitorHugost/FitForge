@@ -5,14 +5,19 @@ import BackgroundImage from '@assets/background.png'
 import { useNavigation } from '@react-navigation/native'
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes'
 import { Center, Image, Text, VStack, Heading, ScrollView } from 'native-base'
+import { useForm, Controller } from 'react-hook-form'
 
 export function SignIn() {
 
     const navigation = useNavigation<AuthNavigatorRoutesProps>()
 
+    const {control,handleSubmit} = useForm()
+
     function handleGoSignUp() {
         navigation.navigate('signUp')
     }
+
+
 
 
     return (
@@ -34,7 +39,7 @@ export function SignIn() {
                 </Center>
                 <Center  >
 
-                    <Heading color='gray.100' mb={'6'}>
+                    <Heading color='gray.100' mb={'6'} fontFamily='heading'>
                         Acesse sua conta
                     </Heading>
                     <Input

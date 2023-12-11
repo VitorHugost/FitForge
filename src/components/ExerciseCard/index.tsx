@@ -28,10 +28,11 @@ export function ExerciseCard({ name, description, ...rest }: Props) {
                         h={16}
                         mr={4}
                         rounded='md'
+                        resizeMode="cover"
                     />
 
                     <VStack flex={1} >
-                        <Heading color="white"  fontSize="md">{name}</Heading>
+                        <Heading color="white"  fontSize="md" fontFamily='heading' >{name}</Heading>
 
                         <Text color="gray.200" fontSize='sm' numberOfLines={2} >{description}</Text>
 

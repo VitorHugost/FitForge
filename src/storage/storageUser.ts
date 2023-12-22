@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { USER_STORAGE } from "./storageConfig";
+import { USER_STORAGE } from "@storage/storageConfig";
 import { UserDTO } from "@dtos/UserDTO";
 
 export async function storageUserSave(user:UserDTO){
@@ -14,4 +14,5 @@ export async function storageGetUser(){
 }
 export async function storageUserRemove(){
     await AsyncStorage.removeItem(USER_STORAGE)
-} 
+}   
+

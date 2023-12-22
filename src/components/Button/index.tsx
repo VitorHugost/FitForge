@@ -1,8 +1,10 @@
 import { Button as NativeBaseButton, IIconButtonProps, Text } from "native-base"
+import { ButtonProps } from "react-native";
 
-type Props = IIconButtonProps & {
+type Props = IIconButtonProps &  {
     title: string;
     variant?: 'solid' | 'outline';
+    isLoading?:boolean
 }
 
 export function Button({ title, variant = 'solid', ...rest }: Props) {

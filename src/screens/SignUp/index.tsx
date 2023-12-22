@@ -1,13 +1,18 @@
-import LogoSvg from '@assets/logo.svg'
-import { Input } from '@components/Input'
-import { Button } from '@components/Button'
 import BackgroundImage from '@assets/background.png'
+import LogoSvg from '@assets/logo.svg'
+import { Button } from '@components/Button'
+import { Input } from '@components/Input'
 import { useNavigation } from '@react-navigation/native'
-import { Center, Image, Text, VStack, Heading, ScrollView } from 'native-base'
-import { useForm, Controller } from 'react-hook-form'
+import { Center, Heading, Image, ScrollView, Text, VStack, useToast } from 'native-base'
+import { Controller, useForm } from 'react-hook-form'
 
-import { yupResolver} from '@hookform/resolvers/yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { api } from '@services/api'
+import { AppError } from '@utils/AppError'
 import * as yup from 'yup'
+import { useContext, useState } from 'react'
+import { AuthContext } from '@contexts/AuthContext'
+import { UseAuth } from '@hooks/useAuth'
 
 type FormDataProps = {
     name: string,
@@ -18,26 +23,54 @@ type FormDataProps = {
 
 const schema = yup.object({
     name: yup.string().required("Informe o nome."),
-    email:yup.string().required("informa o e-email.").email("E-mail inválido."),
-    password: yup.string().required("informa a senha.").min(8,"Minimo de 6 caracteres."),
+    email: yup.string().required("informa o e-email.").email("E-mail inválido."),
+    password: yup.string().required("informa a senha.").min(8, "Minimo de 6 caracteres."),
     confirm_password: yup.string().required("confirme a senha").oneOf([yup.ref('password')], 'As senhas devem ser iguais')
 })
 
 export function SignUp() {
 
+    const [isLoading, setIsLoading]= useState(false)
+
+    const toast = useToast()
+    const { signIn} = UseAuth()
+
+
     const navigation = useNavigation()
     const { control, handleSubmit, formState: { errors } } = useForm<FormDataProps>({
-        resolver:yupResolver(schema)
+        resolver: yupResolver(schema)
     })
 
     function handleGoBack() {
         navigation.goBack()
     }
 
-    function handleSignUp(data: any) {
-        console.log("data", data)
-    }
+    async function handleSignUp({ name, email, password }: FormDataProps) {
 
+        try {
+            setIsLoading(true)
+            await api.post('/users', { name, email, password })
+            await signIn(email, password)
+            
+            
+        } catch (error) {
+            
+            const isAppError = error instanceof AppError;
+            const title = isAppError ? error.message : 'não ofi possivel criar a conta. tente novamente'
+            
+            toast.show({
+                title,
+                placement:'top',
+                bgColor:'red.500'
+            })
+            
+        } finally{
+
+            setIsLoading(false)
+        }
+        
+    }
+    
     return (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
 
@@ -61,7 +94,6 @@ export function SignUp() {
 
                     <Controller
                         name='name'
-                       
                         control={control}
                         render={({ field: { onChange, value } }) => (
                             <Input
@@ -114,12 +146,10 @@ export function SignUp() {
                                 returnKeyType='send'
                                 errorMessage={errors.confirm_password?.message}
                             />
-
-
                         )}
                     />
 
-                    <Button title='Criar e acessar' onPress={handleSubmit(handleSignUp)} />
+                    <Button title='Criar e acessar' onPress={handleSubmit(handleSignUp)} isLoading={isLoading} />
                 </Center>
 
                 <Button title='Voltar para o login' variant='outline' mt={12} onPress={handleGoBack} />

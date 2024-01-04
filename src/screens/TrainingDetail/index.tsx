@@ -55,6 +55,39 @@ export function TrainingDetail() {
             setIsLoading(false)
         }
     }
+    
+    
+    
+    async function handleSaveHistory(){
+        try{
+            setIsLoading(true)
+            
+            console.log('id',exerciseId )
+            await api.post('/history', {exercise_id: exerciseId});
+
+            toast.show({
+                title:"Parabéns, Exercício concluido.",
+                placement: 'top',
+                bgColor: "green.700"
+            })
+
+            navigation.navigate("history")
+
+        }  catch (error) {
+
+            const isAppError = error instanceof AppError
+            const title = isAppError ? error.message : 'Não foi possivel carregar os detalhes do groups.'
+
+            toast.show({
+                title,
+                placement: 'top',
+                bgColor: "red.500"
+            })
+
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     useEffect(() => {
         fetchGroupsById()
@@ -114,7 +147,7 @@ export function TrainingDetail() {
                                 <Text color="gray.200" ml={2}>{dataExercise?.repetitions} repetições</Text>
                             </HStack>
                         </HStack>
-                        <Button title="Marcar como realizado" />
+                        <Button title="Marcar como realizado" onPress={handleSaveHistory} isLoading={isLoading} />
                     </Box>
                 </VStack>
 

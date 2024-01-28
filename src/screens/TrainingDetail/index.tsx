@@ -62,7 +62,6 @@ export function TrainingDetail() {
         try{
             setIsLoading(true)
             
-            console.log('id',exerciseId )
             await api.post('/history', {exercise_id: exerciseId});
 
             toast.show({

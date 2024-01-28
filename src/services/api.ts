@@ -1,18 +1,114 @@
-import { AppError } from '@utils/AppError';
-import axios from 'axios'
+import { storageTokenGet, storageTokenSave } from "@storage/storageAuthToken";
+import { AppError } from "@utils/AppError";
+import axios, { AxiosError, AxiosInstance } from "axios";
+import { err } from "react-native-svg/lib/typescript/xml";
+
+type SignOut = () => void;
+
+type PromiseType = {
+  onSuccess: (token: string) => void;
+  onFailure: (error: AxiosError) => void;
+};
+
+type APIInstanceProps = AxiosInstance & {
+  registerInterceptTokenManager: (signOut: SignOut) => () => void;
+};
 
 const api = axios.create({
-    baseURL:'http://192.168.56.1:3333'
-})
+  baseURL: "http://192.168.56.1:3333",
+}) as APIInstanceProps;
 
-api.interceptors.response.use(response => response, error => {
-    if(error.response && error.response.data){
-        return Promise.reject(new AppError(error.response.data.message))
-    } else {
-        return Promise.reject(error)
+let failedQueue: Array<PromiseType> = [];
+let isRefresh = false;
+api.registerInterceptTokenManager = (signOut) => {
+  const intercepTokenManager = api.interceptors.response.use(
+    (response) => response,
+    async (requestError) => {
+      if (requestError?.response?.status === 401) {
+        if (
+          requestError.response.data?.message === "token.expired" ||
+          requestError.response.data?.message == "token.invalid"
+        ) {
+          const { refresh_token } = await storageTokenGet();
+          if (!refresh_token) {
+            signOut();
+            return Promise.reject(requestError);
+          }
+          const originalRequestConfig = requestError.config;
+          if (isRefresh) {
+            return new Promise((resolve, reject) => {
+              failedQueue.push({
+                onSuccess: (token: string) => {
+                  originalRequestConfig.headers = {
+                    Authorization: `Bearer ${token}`,
+                  };
+                  resolve(api(originalRequestConfig));
+                },
+                onFailure: (error: AxiosError) => {
+                  reject(error);
+                },
+              });
+            });
+          }
+          isRefresh = true;
+
+          return new Promise(async (resolve, reject) => {
+            try {
+              const { data } = await api.post("/sessions/refresh-token", {
+                refresh_token,
+              });
+
+              await storageTokenSave({
+                token: data.token,
+                refresh_token: data.refresh_token,
+              });
+
+              if (originalRequestConfig.data) {
+                originalRequestConfig.data = JSON.parse(
+                  originalRequestConfig.data
+                );
+              }
+
+              originalRequestConfig.headers = {
+                Authorization: `Bearer ${data.token}`,
+              };
+              api.defaults.headers.common["Authorization"] =
+                `Bearer ${data.token}`;
+
+              failedQueue.forEach((request) => {
+                request.onSuccess(data.token);
+              });
+
+              console.log("ATUALIZADO !");
+
+              resolve(api(originalRequestConfig));
+            } catch (error: any) {
+
+              console.log("AQUIIIII",error );
+              failedQueue.forEach((request) => {
+                request.onFailure(error);
+              });
+
+              signOut();
+              reject(error);
+            } finally {
+              (isRefresh = false), (failedQueue = []);
+            }
+          });
+        }
+      }
+
+      if (requestError.response && requestError.response.data) {
+        return Promise.reject(new AppError(requestError.response.data.message));
+      } else {
+        return Promise.reject(requestError);
+      }
     }
-});
+  );
 
-export { api }
+  return () => {
+    api.interceptors.response.eject(intercepTokenManager);
+  };
+};
 
-
+export { api };

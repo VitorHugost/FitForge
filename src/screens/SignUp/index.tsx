@@ -7,14 +7,13 @@ import { Center, Heading, Image, ScrollView, Text, VStack, useToast } from 'nati
 import { Controller, useForm } from 'react-hook-form'
 
 import { yupResolver } from '@hookform/resolvers/yup'
+import { UseAuth } from '@hooks/useAuth'
 import { api } from '@services/api'
 import { AppError } from '@utils/AppError'
+import { useState } from 'react'
 import * as yup from 'yup'
-import { useContext, useState } from 'react'
-import { AuthContext } from '@contexts/AuthContext'
-import { UseAuth } from '@hooks/useAuth'
 
-type FormDataProps = {
+interface FormDataProps {
     name: string,
     email: string,
     password: string,

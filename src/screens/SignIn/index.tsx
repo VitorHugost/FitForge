@@ -24,7 +24,6 @@ interface Props {
 
 export function SignIn() {
 
-
     const navigation = useNavigation<AuthNavigatorRoutesProps>()
     const { signIn } = UseAuth()
     const [isLoading, setIsLoading] = useState(false)
@@ -57,7 +56,7 @@ export function SignIn() {
     return (
         <ScrollView
             contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}> 
 
             <VStack flex={1} px={10} pb={16}>
                 <Image
